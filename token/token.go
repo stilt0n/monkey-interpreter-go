@@ -7,6 +7,18 @@ type Token struct {
 	Literal string
 }
 
+var keywords = map[string]TokenType{
+	"fn":  FUNCTION,
+	"let": LET,
+}
+
+func LookupIdent(identifierLiteral string) TokenType {
+	if tok, ok := keywords[identifierLiteral]; ok {
+		return tok
+	}
+	return IDENT
+}
+
 const (
 	// Invalid syntax and end of file
 	ILLEGAL = "ILLEGAL"

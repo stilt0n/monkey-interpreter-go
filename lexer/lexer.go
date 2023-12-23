@@ -1,22 +1,25 @@
 package lexer
 
-import "monkey-pl/token"
+import (
+	"monkey-pl/token"
+)
 
+/*
+Position here points to ehte next character and readingPosition is the current one.
+I am following the book's naming convention here, but think currentPosition and
+nextPosition might be what I'd prefer. I'm holding off on renaming these until I
+have a bigger picture view of things.
+
+`ch` uses byte instead of rune because we are assuming that all input will be ascii chars
+
+Ascii chars are much easier to work with because we don't need to account for cases
+when a single character can be multiple bytes long.
+*/
 type Lexer struct {
-	input    string
-	position int // points to current char
-	// allows us to peek further to see what is next
-	readPosition int // current reading position (after current char)
-	// To keep things simple our lexer only supports ascii chars
-	// if we were to support unicode we'd need to use runes here
-	// since we're sticking to ascii we're using bytes.
-	// The challenge with using runes here is that we'd then
-	// need to account for when chars are more than a byte long.
-	ch byte // current char being examined
-}
-
-func newToken(t token.TokenType, c byte) token.Token {
-	return token.Token{Type: t, Literal: string(c)}
+	input        string
+	position     int
+	readPosition int
+	ch           byte
 }
 
 func New(input string) *Lexer {
@@ -26,19 +29,17 @@ func New(input string) *Lexer {
 	return lex
 }
 
-func (lex *Lexer) readChar() {
-	if lex.readPosition >= len(lex.input) {
-		// ASCII code for "NUL"
-		lex.ch = 0
-	} else {
-		lex.ch = lex.input[lex.readPosition]
-	}
-	lex.position = lex.readPosition
-	lex.readPosition++
-}
-
 func (lex *Lexer) NextToken() token.Token {
 	var tok token.Token
+
+	lex.skipWhitespace()
+
+	// Need to skip comments outside of the switch statement so
+	// that our ability to return a correct token isn't disrupted
+	if lex.ch == '#' {
+		lex.skipComment()
+		lex.skipWhitespace()
+	}
 
 	switch lex.ch {
 	case '=':
@@ -60,7 +61,75 @@ func (lex *Lexer) NextToken() token.Token {
 	case 0:
 		tok.Literal = ""
 		tok.Type = token.EOF
+	default:
+		if isAsciiLetter(lex.ch) {
+			tok.Literal = lex.readIdentifier()
+			tok.Type = token.LookupIdent(tok.Literal)
+			return tok
+		} else if isAsciiDigit(lex.ch) {
+			tok.Type = token.INT
+			tok.Literal = lex.readNumber()
+			return tok
+		} else {
+			// TODO: support comments
+			tok = newToken(token.ILLEGAL, lex.ch)
+		}
 	}
 	lex.readChar()
 	return tok
+}
+
+// Non-exported methods
+func (lex *Lexer) readChar() {
+	if lex.readPosition >= len(lex.input) {
+		// ASCII code for "NUL"
+		lex.ch = 0
+	} else {
+		lex.ch = lex.input[lex.readPosition]
+	}
+	lex.position = lex.readPosition
+	lex.readPosition++
+}
+
+func (lex *Lexer) readIdentifier() string {
+	startPosition := lex.position
+	for isAsciiLetter(lex.ch) {
+		lex.readChar()
+	}
+	return lex.input[startPosition:lex.position]
+}
+
+func (lex *Lexer) readNumber() string {
+	startPosition := lex.position
+	for isAsciiDigit(lex.ch) {
+		lex.readChar()
+	}
+	return lex.input[startPosition:lex.position]
+}
+
+// Skips comments. All comments are single line, but the logic
+// for a multiline syntax would be almost identical
+func (lex *Lexer) skipComment() {
+	for lex.ch != '\n' && lex.ch != 0 {
+		lex.readChar()
+	}
+}
+
+func (lex *Lexer) skipWhitespace() {
+	for lex.ch == ' ' || lex.ch == '\t' || lex.ch == '\n' || lex.ch == '\r' {
+		lex.readChar()
+	}
+}
+
+// Utility functions
+func newToken(t token.TokenType, c byte) token.Token {
+	return token.Token{Type: t, Literal: string(c)}
+}
+
+func isAsciiLetter(ch byte) bool {
+	return 'a' <= ch && ch <= 'z' || 'A' <= ch && ch <= 'Z' || ch == '_'
+}
+
+func isAsciiDigit(ch byte) bool {
+	return '0' <= ch && ch <= '9'
 }
