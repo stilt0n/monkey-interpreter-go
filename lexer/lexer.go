@@ -61,5 +61,6 @@ func (lex *Lexer) NextToken() token.Token {
 		tok.Literal = ""
 		tok.Type = token.EOF
 	}
+	lex.readChar()
 	return tok
 }
