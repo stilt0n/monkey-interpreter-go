@@ -36,7 +36,8 @@ func (lex *Lexer) NextToken() token.Token {
 
 	// Need to skip comments outside of the switch statement so
 	// that our ability to return a correct token isn't disrupted
-	if lex.ch == '#' {
+	// this is a loop to deal with multiple lines of comments
+	for lex.ch == '#' {
 		lex.skipComment()
 		lex.skipWhitespace()
 	}
@@ -44,6 +45,30 @@ func (lex *Lexer) NextToken() token.Token {
 	switch lex.ch {
 	case '=':
 		tok = newToken(token.ASSIGN, lex.ch)
+		if lex.peekChar() == '=' {
+			tok.Type = token.EQ
+			tok.Literal = "=="
+			lex.readChar()
+		}
+	case '+':
+		tok = newToken(token.PLUS, lex.ch)
+	case '-':
+		tok = newToken(token.MINUS, lex.ch)
+	case '!':
+		tok = newToken(token.BANG, lex.ch)
+		if lex.peekChar() == '=' {
+			tok.Type = token.NEQ
+			tok.Literal = "!="
+			lex.readChar()
+		}
+	case '/':
+		tok = newToken(token.SLASH, lex.ch)
+	case '*':
+		tok = newToken(token.ASTERISK, lex.ch)
+	case '<':
+		tok = newToken(token.LT, lex.ch)
+	case '>':
+		tok = newToken(token.GT, lex.ch)
 	case ';':
 		tok = newToken(token.SEMICOLON, lex.ch)
 	case '(':
@@ -52,8 +77,6 @@ func (lex *Lexer) NextToken() token.Token {
 		tok = newToken(token.RPAREN, lex.ch)
 	case ',':
 		tok = newToken(token.COMMA, lex.ch)
-	case '+':
-		tok = newToken(token.PLUS, lex.ch)
 	case '{':
 		tok = newToken(token.LBRACE, lex.ch)
 	case '}':
@@ -89,6 +112,14 @@ func (lex *Lexer) readChar() {
 	}
 	lex.position = lex.readPosition
 	lex.readPosition++
+}
+
+func (lex *Lexer) peekChar() byte {
+	if lex.readPosition >= len(lex.input) {
+		return 0
+	} else {
+		return lex.input[lex.readPosition]
+	}
 }
 
 func (lex *Lexer) readIdentifier() string {

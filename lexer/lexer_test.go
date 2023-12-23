@@ -47,6 +47,22 @@ func TestNextToken(t *testing.T) {
 	};
 
 	let result = add(five, ten);
+	
+	# NOTE: The lexer does not check for valid syntax, just valid tokens
+	# these tokens are valid even if the syntax is gibberish
+	
+	!-/*5;
+	5 < 10 > 5;
+	
+	if (5 < 10) {
+		return true;
+	} else {
+		return false;
+	}
+
+	10 == 10;
+	10 != 9;
+
 	# Will a comment work at the end??
 	`
 	tests := []struct {
@@ -95,6 +111,50 @@ func TestNextToken(t *testing.T) {
 		{token.IDENT, "ten"},
 		{token.RPAREN, ")"},
 		{token.SEMICOLON, ";"},
+		// !-/*;
+		{token.BANG, "!"},
+		{token.MINUS, "-"},
+		{token.SLASH, "/"},
+		{token.ASTERISK, "*"},
+		{token.INT, "5"},
+		{token.SEMICOLON, ";"},
+		// 5 < 10 > 5;
+		{token.INT, "5"},
+		{token.LT, "<"},
+		{token.INT, "10"},
+		{token.GT, ">"},
+		{token.INT, "5"},
+		{token.SEMICOLON, ";"},
+		// if (5 < 10)
+		{token.IF, "if"},
+		{token.LPAREN, "("},
+		{token.INT, "5"},
+		{token.LT, "<"},
+		{token.INT, "10"},
+		{token.RPAREN, ")"},
+		// { return true; }
+		{token.LBRACE, "{"},
+		{token.RETURN, "return"},
+		{token.TRUE, "true"},
+		{token.SEMICOLON, ";"},
+		{token.RBRACE, "}"},
+		// else { return false; }
+		{token.ELSE, "else"},
+		{token.LBRACE, "{"},
+		{token.RETURN, "return"},
+		{token.FALSE, "false"},
+		{token.SEMICOLON, ";"},
+		{token.RBRACE, "}"},
+		// 10 == 10;
+		{token.INT, "10"},
+		{token.EQ, "=="},
+		{token.INT, "10"},
+		{token.SEMICOLON, ";"},
+		// 10 != 9;
+		{token.INT, "10"},
+		{token.NEQ, "!="},
+		{token.INT, "9"},
+		{token.SEMICOLON, ";"},
 		// EOF
 		{token.EOF, ""},
 	}
@@ -104,10 +164,12 @@ func TestNextToken(t *testing.T) {
 	for i, testTok := range tests {
 		tok := lex.NextToken()
 		if tok.Type != testTok.expectedType {
+			t.Logf("{ id: %d, type: %q, literal: %q }", i, tok.Type, tok.Literal)
 			t.Fatalf("tests[%d] - tokentype wrong. Expected=%q, got=%q", i, testTok.expectedType, tok.Type)
 		}
 
 		if tok.Literal != testTok.expectedLiteral {
+			t.Logf("{ id: %d, type: %q, literal: %q }", i, tok.Type, tok.Literal)
 			t.Fatalf("tests[%d] - literal wrong. Expected=%q, got=%q", i, testTok.expectedLiteral, tok.Literal)
 		}
 	}
