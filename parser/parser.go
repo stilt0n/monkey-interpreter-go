@@ -5,6 +5,7 @@ import (
 	"monkey-pl/ast"
 	"monkey-pl/lexer"
 	"monkey-pl/token"
+	"strconv"
 )
 
 // This defines order of operations
@@ -37,6 +38,7 @@ func New(l *lexer.Lexer) *Parser {
 	p := &Parser{lex: l, errors: []string{}}
 	p.prefixParseFns = make(map[token.TokenType]prefixParseFn)
 	p.registerPrefix(token.IDENT, p.parseIdentifier)
+	p.registerPrefix(token.INT, p.parseIntegerLiteral)
 	// Sets currentToken and peekToken
 	p.nextToken()
 	p.nextToken()
@@ -101,6 +103,20 @@ func (p *Parser) parseExpression(precedence int) ast.Expression {
 
 func (p *Parser) parseIdentifier() ast.Expression {
 	return &ast.Identifier{Token: p.currentToken, Value: p.currentToken.Literal}
+}
+
+func (p *Parser) parseIntegerLiteral() ast.Expression {
+	lit := &ast.IntegerLiteral{Token: p.currentToken}
+
+	value, err := strconv.ParseInt(p.currentToken.Literal, 0, 64)
+	if err != nil {
+		message := fmt.Sprintf("could not parse %q as integer", p.currentToken.Literal)
+		p.errors = append(p.errors, message)
+		return nil
+	}
+
+	lit.Value = value
+	return lit
 }
 
 // See commented pseudo-code in `notes.md`

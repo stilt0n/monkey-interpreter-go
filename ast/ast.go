@@ -81,6 +81,21 @@ func (i *Identifier) String() string {
 	return i.Value
 }
 
+type IntegerLiteral struct {
+	Value int64
+	Token token.Token
+}
+
+func (i *IntegerLiteral) expressionNode() {}
+
+func (i *IntegerLiteral) TokenLiteral() string {
+	return i.Token.Literal
+}
+
+func (i *IntegerLiteral) String() string {
+	return i.Token.Literal
+}
+
 /*
 Need:
   - Name of variable
