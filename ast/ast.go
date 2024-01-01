@@ -96,6 +96,29 @@ func (i *IntegerLiteral) String() string {
 	return i.Token.Literal
 }
 
+type PrefixExpression struct {
+	Token    token.Token // prefix token
+	Operator string
+	Right    Expression
+}
+
+func (p *PrefixExpression) expressionNode() {}
+
+func (p *PrefixExpression) TokenLiteral() string {
+	return p.Token.Literal
+}
+
+func (p *PrefixExpression) String() string {
+	var out bytes.Buffer
+
+	out.WriteString("(")
+	out.WriteString(p.Operator)
+	out.WriteString(p.Right.String())
+	out.WriteString(")")
+
+	return out.String()
+}
+
 /*
 Need:
   - Name of variable
