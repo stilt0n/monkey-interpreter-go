@@ -99,3 +99,35 @@ func checkForParserErrors(t *testing.T, pars *Parser) {
 	}
 	t.FailNow()
 }
+
+func TestIdentifierExpression(t *testing.T) {
+	input := "foobar;"
+
+	lex := lexer.New(input)
+	pars := New(lex)
+	program := pars.ParseProgram()
+	checkForParserErrors(t, pars)
+
+	if len(program.Statements) != 1 {
+		t.Fatalf("Expected program to have 1 statement. Got %d", len(program.Statements))
+	}
+
+	statement, ok := program.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Fatalf("Expected statement to be an ExpressionStatement. Got %T", program.Statements[0])
+	}
+
+	ident, ok := statement.Expression.(*ast.Identifier)
+
+	if !ok {
+		t.Fatalf("Expected statement's expression to be an Identifier. Got %T", statement.Expression)
+	}
+
+	if ident.Value != "foobar" {
+		t.Errorf("Expected statement value to be 'foobar'. Got '%s'", ident.Value)
+	}
+
+	if ident.TokenLiteral() != "foobar" {
+		t.Errorf("Expected TokenLiteral to be 'foobar'. Got '%s'", ident.TokenLiteral())
+	}
+}
