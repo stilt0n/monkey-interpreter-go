@@ -7,6 +7,18 @@ import (
 	"monkey-pl/token"
 )
 
+// This defines order of operations
+const (
+	_ int = iota
+	LOWEST
+	EQUALS
+	LESSGREATER
+	SUM
+	PRODUCT
+	PREFIX
+	CALL
+)
+
 type Parser struct {
 	lex            *lexer.Lexer
 	currentToken   token.Token
@@ -23,6 +35,8 @@ type (
 
 func New(l *lexer.Lexer) *Parser {
 	p := &Parser{lex: l, errors: []string{}}
+	p.prefixParseFns = make(map[token.TokenType]prefixParseFn)
+	p.registerPrefix(token.IDENT, p.parseIdentifier)
 	// Sets currentToken and peekToken
 	p.nextToken()
 	p.nextToken()
@@ -63,8 +77,30 @@ func (p *Parser) parseStatement() ast.Statement {
 		return p.parseReturnStatement()
 	default:
 		// unimplemented
+		return p.parseExpressionStatement()
+	}
+}
+
+func (p *Parser) parseExpressionStatement() *ast.ExpressionStatement {
+	statement := &ast.ExpressionStatement{Token: p.currentToken}
+	statement.Expression = p.parseExpression(LOWEST)
+	if p.peekToken.Type == token.SEMICOLON {
+		p.nextToken()
+	}
+	return statement
+}
+
+func (p *Parser) parseExpression(precedence int) ast.Expression {
+	prefix := p.prefixParseFns[p.currentToken.Type]
+	if prefix == nil {
 		return nil
 	}
+	leftExp := prefix()
+	return leftExp
+}
+
+func (p *Parser) parseIdentifier() ast.Expression {
+	return &ast.Identifier{Token: p.currentToken, Value: p.currentToken.Literal}
 }
 
 // See commented pseudo-code in `notes.md`
