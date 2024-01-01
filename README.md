@@ -12,6 +12,10 @@ I chose this particular book because:
 - I've been learning Go for fun anyway
 - Go seems like a better good language choice for my intended application because of its performance
 
+## On `notes.md` files
+
+I've tried to write notes about what I'm learning through implementing the different parts of the interpreter. I am also writing notes as comments directly into the source code. The notes convey my understanding of things when I wrote them. They may sometimes be incorrect, and I may not always return to correct them.
+
 ## Extra features
 
 I may not many features beyond what was in the book, but the ones I did are listed here:

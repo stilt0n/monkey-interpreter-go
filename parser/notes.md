@@ -194,14 +194,16 @@ function parseOperatorExpression() {
 Tokens get processed from left to right, but expressions aren't as straightforward.
 
 - Operator precedence:
-  - 5 * 5 + 10
-  - represented as ((5 * 5) + 10)
-  - 5 * 5 is deeper in ast and evaluated earlier than addition
-  - Parser needs to know * has higher OP than +
+
+  - 5 \* 5 + 10
+  - represented as ((5 \* 5) + 10)
+  - 5 \* 5 is deeper in ast and evaluated earlier than addition
+  - Parser needs to know \* has higher OP than +
   - Needs to know what to do with parens:
-    - 5 * (5 + 10) != 5 * 5 + 10
+    - 5 _ (5 + 10) != 5 _ 5 + 10
 
 - Expressions of same type can appear in multiple positions
+
   - e.g. -5 - 10
   - minus is prefix operator and infix operator
 
@@ -212,42 +214,54 @@ Tokens get processed from left to right, but expressions aren't as straightforwa
 Everything that isn't a let or return statement is an expression in Monkey.
 
 Prefix operators:
+
 ```js
--5
-!true
-!false
+-5;
+!true;
+!false;
 ```
+
 Infix operators (binary operators):
+
 ```js
-5 + 5
-5 - 5
-5 / 5
-5 * 5
+5 + 5;
+5 - 5;
+5 / 5;
+5 * 5;
 ```
+
 comparison operators:
+
 ```js
-foo == bar
-foo != bar
-foo < bar
-foo > bar
+foo == bar;
+foo != bar;
+foo < bar;
+foo > bar;
 ```
+
 parens:
+
 ```js
-5 * (5 + 5)
-((5 + 5) * 5) * 5
+5 * (5 + 5)((5 + 5) * 5) * 5;
 ```
+
 call expressions:
+
 ```js
-add(2,3)
-add(add(2,3),add(5,10))
-max(5, add(5, (5 * 5)))
+add(2, 3);
+add(add(2, 3), add(5, 10));
+max(5, add(5, 5 * 5));
 ```
+
 Identifier expressions
+
 ```js
-foo * bar / foobar
-add(foo, bar)
+(foo * bar) / foobar;
+add(foo, bar);
 ```
+
 Function literals are also expressions:
+
 ```js
 let add = fn(x, y) { return x + y; };
 // identifier expression function literal
@@ -255,10 +269,13 @@ fn(x, y) { return x + y }(5, 5)
 // IIFE
 (fn(x) { return x }(5) + 10) * 10
 ```
+
 Also have if expressions:
+
 ```js
 let result = if(10 > 5) { true } else { false };
 ```
+
 This is a lot to handle.
 
 ## Pratt Parsing
@@ -268,16 +285,65 @@ Alternative to parsers based on context-free grammars.
 Instead of associated parsing functions (e.g. parseLetStatement) w/ grammar rules we can associate them with single token types.
 
 Each token type can have two associated parsing functions.
+
 - Infix
 - Prefix
 
 ### Terminology
-Prefix operator:
-  In front of operand (`-5`, `--5`)
-Postfix operator:
-  After operand (`i++`)
-Infix operator:
-  Between operands (`a + b`)
-Operator precedence:
-  Order of operations
 
+Prefix operator:
+In front of operand (`-5`, `--5`)
+Postfix operator:
+After operand (`i++`)
+Infix operator:
+Between operands (`a + b`)
+Operator precedence:
+Order of operations
+
+## Parsing prefix expressions
+
+Literals and Identifiers are pretty straightforward so I'm skipping them
+in my notes. They should be easy enough to reason about from looking at
+the code / tests.
+
+Prefix expressions are a little trickier (but not too tricky).
+
+They have the form:
+
+```
+<Prefix Operator><Right Expression>
+```
+
+This is going to resolve to a node that has:
+
+```go
+{
+  // Other struct props
+  Operator string // in TS this would be '-' | '!'
+  Right Expression
+}
+```
+
+So we first figure out what the operator is. Then we advance tokens and parse
+the expression and point to it in the prefix expression node.
+
+## Parsing infix expressions
+
+We have eight infix operators:
+
+```js
+x + y;
+x - y;
+x * y;
+x / y;
+x > y;
+x < y;
+x == y;
+x != y;
+```
+
+The general form is:
+
+```
+<left expression> <infix operator> <right expression>
+```
