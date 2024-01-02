@@ -4,15 +4,30 @@ import (
 	"bufio"
 	"fmt"
 	"io"
+	"monkey-pl/evaluator"
 	"monkey-pl/lexer"
 	"monkey-pl/parser"
+	"runtime"
 )
+
+func getEvalOutputColor() []string {
+	// windows terminal won't support this
+	// so we just don't use a color
+	if runtime.GOOS == "windows" {
+		return []string{"", ""}
+	}
+	return []string{"\033[33m", "\033[0m"}
+
+}
 
 const PROMPT = "🐒 >> "
 
 func Start(in io.Reader, out io.Writer) {
 	scanner := bufio.NewScanner(in)
-
+	evalColorCodes := getEvalOutputColor()
+	yellow := func(str string) string {
+		return fmt.Sprintf("%s%s%s", evalColorCodes[0], str, evalColorCodes[1])
+	}
 	for {
 		fmt.Fprint(out, PROMPT)
 		scanned := scanner.Scan()
@@ -33,8 +48,11 @@ func Start(in io.Reader, out io.Writer) {
 			continue
 		}
 
-		io.WriteString(out, program.String())
-		io.WriteString(out, "\n")
+		evaluated := evaluator.Eval(program)
+		if evaluated != nil {
+			io.WriteString(out, yellow(evaluated.Inspect()))
+			io.WriteString(out, "\n")
+		}
 	}
 }
 
