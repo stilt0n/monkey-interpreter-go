@@ -353,6 +353,106 @@ func TestOperatorPrecedence(t *testing.T) {
 	}
 }
 
+func TestIfExpression(t *testing.T) {
+	input := "if (x < y) { x }"
+	lex := lexer.New(input)
+	pars := New(lex)
+	program := pars.ParseProgram()
+	checkForParserErrors(t, pars)
+
+	if len(program.Statements) != 1 {
+		t.Fatalf("Expected program to have 1 statement. Got %d", len(program.Statements))
+	}
+
+	statement, ok := program.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Fatalf("Expected program statement to be an expression statement. Got %T", program.Statements[0])
+	}
+
+	expr, ok := statement.Expression.(*ast.IfExpression)
+
+	if !ok {
+		t.Fatalf("Expected statement expression to be of type *ast.IfExpression. Got %T", statement.Expression)
+	}
+
+	if !testInfixExpression(t, expr.Condition, "x", "<", "y") {
+		return
+	}
+
+	if len(expr.Consequence.Statements) != 1 {
+		t.Errorf("Expected consequence to have 1 statement. Got %d", len(expr.Consequence.Statements))
+	}
+
+	consequence, ok := expr.Consequence.Statements[0].(*ast.ExpressionStatement)
+
+	if !ok {
+		t.Fatalf("Expected consequence statement to be of type *ast.ExpressionStatement. Got %T", expr.Consequence.Statements[0])
+	}
+
+	if !testIdentifier(t, consequence.Expression, "x") {
+		return
+	}
+
+	if expr.Alternative != nil {
+		t.Errorf("Expected not to get an Alternative expression. Got %+v", expr.Alternative)
+	}
+}
+
+func TestIfElseExpression(t *testing.T) {
+	input := "if (x < y) { x } else { y }"
+	lex := lexer.New(input)
+	pars := New(lex)
+	program := pars.ParseProgram()
+	checkForParserErrors(t, pars)
+
+	if len(program.Statements) != 1 {
+		t.Fatalf("Expected program to have 1 statement. Got %d", len(program.Statements))
+	}
+
+	statement, ok := program.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Fatalf("Expected program statement to be an expression statement. Got %T", program.Statements[0])
+	}
+
+	expr, ok := statement.Expression.(*ast.IfExpression)
+
+	if !ok {
+		t.Fatalf("Expected statement expression to be of type *ast.IfExpression. Got %T", statement.Expression)
+	}
+
+	if !testInfixExpression(t, expr.Condition, "x", "<", "y") {
+		return
+	}
+
+	if len(expr.Consequence.Statements) != 1 {
+		t.Errorf("Expected consequence to have 1 statement. Got %d", len(expr.Consequence.Statements))
+	}
+
+	consequence, ok := expr.Consequence.Statements[0].(*ast.ExpressionStatement)
+
+	if !ok {
+		t.Fatalf("Expected consequence statement to be of type *ast.ExpressionStatement. Got %T", expr.Consequence.Statements[0])
+	}
+
+	if !testIdentifier(t, consequence.Expression, "x") {
+		return
+	}
+
+	if expr.Alternative == nil {
+		t.Fatal("Expected to get an Alternative expression. Got nil")
+	}
+
+	alternative, ok := expr.Alternative.Statements[0].(*ast.ExpressionStatement)
+
+	if !ok {
+		t.Fatalf("Expected alternative statement to be of type *ast.ExpressionStatement. Got %T", expr.Alternative.Statements[0])
+	}
+
+	if !testIdentifier(t, alternative.Expression, "y") {
+		return
+	}
+}
+
 func testIntegerLiteral(t *testing.T, il ast.Expression, value int64) bool {
 	integer, ok := il.(*ast.IntegerLiteral)
 	if !ok {
