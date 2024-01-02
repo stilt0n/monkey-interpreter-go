@@ -8,9 +8,9 @@ I don't think it's necessary to have more than a superficial understanding of AS
 
 I chose this particular book because:
 
-- It's the first one I hear about that addresses my use case
+- It's the first one I heard about that addresses my use case
 - I've been learning Go for fun anyway
-- Go seems like a better good language choice for my intended application because of its performance
+- Go seems like a good language choice for my intended application because of its performance
 
 ## On `notes.md` files
 
@@ -25,6 +25,6 @@ the syntaxes of the two languages are very close.
 
 ## Extra features
 
-I may not many features beyond what was in the book, but the ones I did are listed here:
+I may not implement many features beyond what was in the book, but the ones I did are listed here:
 
 - Comments. Can use `#` character for single line comments.
