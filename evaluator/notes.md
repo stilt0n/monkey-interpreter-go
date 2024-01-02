@@ -193,3 +193,13 @@ more flexibility in implementing different types of objects
 ### Further reading on Objects
 
 Book recommends [Wren source code](https://github.com/wren-lang/wren)
+
+## Self evaluating expressions
+
+These are expressions where what you type into the
+repl should be the output you receive.
+
+### Example
+
+Given an `*ast.IntegerLiteral` `Eval` should return an
+`*object.Integer` with `Value=*ast.IntegerLiteral.Value`
