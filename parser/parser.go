@@ -52,6 +52,8 @@ func New(l *lexer.Lexer) *Parser {
 	// Register prefix parsers
 	p.registerPrefix(token.IDENT, p.parseIdentifier)
 	p.registerPrefix(token.INT, p.parseIntegerLiteral)
+	p.registerPrefix(token.TRUE, p.parseBooleanLiteral)
+	p.registerPrefix(token.FALSE, p.parseBooleanLiteral)
 	p.registerPrefix(token.BANG, p.parsePrefixExpression)
 	p.registerPrefix(token.MINUS, p.parsePrefixExpression)
 	// Register infix parsers
@@ -126,9 +128,10 @@ func (p *Parser) parseExpression(precedence int) ast.Expression {
 	// and we return the parsed literal / ident. We allow statements
 	// like `5;` or `x;` but the more practical use case of this is
 	// in situations like `return x;` or `let x = 5;`
+	// NOTE: peekPrecedence is LOWEST when there is no associated precedence
+	// which will always terminate the loop.
 	for p.peekToken.Type != token.SEMICOLON && precedence < p.peekPrecedence() {
 		infix := p.infixParseFns[p.peekToken.Type]
-		// this can handle cases like "5 + 5" where there is no semicolon
 		if infix == nil {
 			return leftExpr
 		}
@@ -179,6 +182,10 @@ func (p *Parser) parseIntegerLiteral() ast.Expression {
 
 	lit.Value = value
 	return lit
+}
+
+func (p *Parser) parseBooleanLiteral() ast.Expression {
+	return &ast.BooleanLiteral{Token: p.currentToken, Value: p.currentTokenIs(token.TRUE)}
 }
 
 // See commented pseudo-code in `notes.md`

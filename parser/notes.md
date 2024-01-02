@@ -347,3 +347,201 @@ The general form is:
 ```
 <left expression> <infix operator> <right expression>
 ```
+
+## Example expression walkthrough
+
+```js
+1 + 2 + 3;
+```
+
+We need to nest AST nodes correctly. The AST (as a string) looks like this:
+
+```js
+1 + 2 + 3;
+```
+
+The actual tree struct is like this:
+
+```go
+&ast.InfixExpression{
+  Token: token.PLUS
+  Left: &ast.InfixExpression{
+    Token: token.PLUS
+    Left: &ast.IntegerLiteral{
+      Value: 1
+      Token: token.INT
+    }
+    Operator: "+"
+    Right: &ast.IntegerLiteral{
+      Value: 2
+      Token: token.INT
+    }
+  }
+  Operator: "+"
+  Right: &ast.IntegerLiteral{
+    Value: 3
+    Token: token.INT
+  }
+}
+```
+
+Start:
+
+```
+key: c => current p => peek
+1 + 2 + 3
+^ ^
+c p
+```
+
+We check if thhe current token has an associated prefixParseFn. We have one for
+token.INT so we part it to an int literal.
+
+```go
+// Current state of leftExpr
+&ast.IntegerLiteral{
+  Value: 1,
+  Token: token.INT
+}
+```
+
+Now we enter the for loop.
+
+```go
+for p.peekToken.Type != token.SEMICOLON && precedence < p.peekPrecedence()
+```
+
+This is true because we're currently at LOWEST precedence and there's
+no semicolon. So we look for an infix function associated with the peek token.
+Which will be `parseInfixExpression`.
+
+```go
+// Inside the for loop
+infix := p.infixParseFns[p.peekToken.Type]
+	if infix == nil {
+		return leftExpr
+	}
+	p.nextToken()
+	leftExpr = infix(leftExpr)
+```
+
+`infix` for token.PLUS (as said above) is not nil. So we're going to advance
+tokens (to make `token.PLUS` into the current token) and then call the infix
+function (`parseInfixExpression`) and reassign leftExpr to it.
+
+This will end up creating this node:
+
+```go
+// current state of leftExpr
+&ast.InfixExpression{
+  Token: token.PLUS
+  Left: &ast.IntegerLiteral{
+    Value: 1
+    Token: token.INT
+  }
+  Operator: "+"
+  Right: &ast.IntegerLiteral{
+    Value: 2
+    Token: token.INT
+  }
+}
+```
+
+In more detail. Here is the code for `parseInfixExpression`:
+
+```go
+func (p *Parser) parseInfixExpression(left ast.Expression) ast.Expression {
+	expression := &ast.InfixExpression{
+		Token:    p.currentToken,
+		Operator: p.currentToken.Literal,
+		Left:     left,
+	}
+	precedence := p.currentPrecedence()
+	p.nextToken()
+	expression.Right = p.parseExpression(precedence)
+
+	return expression
+}
+```
+
+We're creating an expression with the info we already know. Then we need to
+parse the right expression. To do this we have to advance tokens. Then we
+call `parseExpression` again with the precedence of the new current operator.
+
+Parse expression is going to see if it can do a prefix parse. Since the current
+token is `token.INT` then we can. So we parse it as an integer literal. But
+the precedence (`SUM`) is the same as the precedence of the peek token. So
+we won't do the loop and we return the literal for 2 which is added as `Right`
+since we're doing the recursive call inside of `parseInfixExpression`.
+
+Now we return that expression and get the node above (reposted here):
+
+```go
+// current state of leftExpr
+&ast.InfixExpression{
+  Token: token.PLUS
+  Left: &ast.IntegerLiteral{
+    Value: 1
+    Token: token.INT
+  }
+  Operator: "+"
+  Right: &ast.IntegerLiteral{
+    Value: 2
+    Token: token.INT
+  }
+}
+```
+
+In the original loop precedence is still at `LOWEST` so we continue the
+loop. Since the peek token has an associated infix function we will do
+another infix parse. This will follow the same process as before but
+using our current tree as `Left`. Which gives us the final tree:
+
+```go
+&ast.InfixExpression{
+  Token: token.PLUS
+  Left: &ast.InfixExpression{
+    Token: token.PLUS
+    Left: &ast.IntegerLiteral{
+      Value: 1
+      Token: token.INT
+    }
+    Operator: "+"
+    Right: &ast.IntegerLiteral{
+      Value: 2
+      Token: token.INT
+    }
+  }
+  Operator: "+"
+  Right: &ast.IntegerLiteral{
+    Value: 3
+    Token: token.INT
+  }
+}
+```
+
+Now we have
+
+```
+1 + 2 + 3;
+        ^^
+        cp
+```
+
+(We actually didn't have a semi in our original example and the termination
+would be handled by peekPrecedence defaulting to `LOWEST`)
+Since the peek token is a `token.SEMICOLON` then we terminate the loop
+and return the tree (stored in `leftExpr`).
+
+This is a pretty simple example, but the general goal is to have higher
+precedence operators deeper in the AST. I don't want to add a bunch more
+example but the book can be a good reference. I think it's also not very
+hard to reason about how precedence would work (say if we replaced
+1 + 2 + 3 with 1 + 2 \* 3) for more advanced cases because the recursion
+involved makes things pretty simple.
+
+### References
+
+[Link to Vaughan Pratt's paper on operator precedence](https://dl.acm.org/doi/pdf/10.1145/512927.512931)
+
+See page 88 in book for walkthrough of how it works.
