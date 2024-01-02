@@ -16,6 +16,13 @@ I chose this particular book because:
 
 I've tried to write notes about what I'm learning through implementing the different parts of the interpreter. I am also writing notes as comments directly into the source code. The notes convey my understanding of things when I wrote them. They may sometimes be incorrect, and I may not always return to correct them.
 
+#### About code blocks
+
+When representing the abstract syntax of monkey in code blocks
+I use go for syntax highlighting. For the concrete syntax, I
+am using JavaScript because for syntax highlighting purposes
+the syntaxes of the two languages are very close.
+
 ## Extra features
 
 I may not many features beyond what was in the book, but the ones I did are listed here:
