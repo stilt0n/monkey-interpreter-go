@@ -540,6 +540,34 @@ hard to reason about how precedence would work (say if we replaced
 1 + 2 + 3 with 1 + 2 \* 3) for more advanced cases because the recursion
 involved makes things pretty simple.
 
+## Block Statements
+
+Parsing function literals and if-else statements introduces a new concept:
+
+Block Statements
+
+Parsing block statements looks largely like a recursive call to ParseProgram
+because there can be an arbitrary number of statements inside a block and these
+statements can be standard statements (`return` or `let`) or expression statements.
+
+## Function Calls
+
+Function calls are a _lot_ of expressions. An function call's structure
+looks like this:
+
+```
+<expression>(<comma separated expressions>)
+```
+
+The function name is an expression because it is an identifier which are
+expressions in Monkey.
+
+How to tell difference between function literals and function calls?
+
+The paren here has two meanings. In a function literal it is falling the
+`fn` keyword. In a function call it follows a function identifier. In other
+words, when you call a function, the left paren is an infix operator.
+
 ### References
 
 [Link to Vaughan Pratt's paper on operator precedence](https://dl.acm.org/doi/pdf/10.1145/512927.512931)

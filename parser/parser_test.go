@@ -339,6 +339,14 @@ func TestOperatorPrecedence(t *testing.T) {
 			"!(true == true)",
 			"(!(true == true))",
 		},
+		{
+			"a + add(b * c) + d",
+			"((a + add((b * c))) + d)",
+		},
+		{
+			"add(a, b, 1, 2 * 3, 4 + 5, add(6, 7 * 8))",
+			"add(a, b, 1, (2 * 3), (4 + 5), add(6, (7 * 8)))",
+		},
 	}
 
 	for _, tt := range tests {
@@ -514,6 +522,40 @@ func TestFunctionParameterParsing(t *testing.T) {
 			testLiteralExpression(t, function.Parameters[i], ident)
 		}
 	}
+}
+
+func TestCallExpression(t *testing.T) {
+	input := "add(1, 2 * 3, 4 + 5);"
+	pars := New(lexer.New(input))
+	program := pars.ParseProgram()
+	checkForParserErrors(t, pars)
+
+	if len(program.Statements) != 1 {
+		t.Fatalf("Expected program to have 1 statement. Got %d", len(program.Statements))
+	}
+
+	statement, ok := program.Statements[0].(*ast.ExpressionStatement)
+
+	if !ok {
+		t.Fatalf("Expected program statement to be an expression statement. Got %T", program.Statements[0])
+	}
+
+	expr, ok := statement.Expression.(*ast.CallExpression)
+	if !ok {
+		t.Fatalf("Expected statement expression to be of type *ast.CallExpression. Got %T", statement.Expression)
+	}
+
+	if !testIdentifier(t, expr.Function, "add") {
+		return
+	}
+
+	if len(expr.Arguments) != 3 {
+		t.Fatalf("Expected function to be called with 3 arguments. Got %d", len(expr.Arguments))
+	}
+
+	testLiteralExpression(t, expr.Arguments[0], 1)
+	testInfixExpression(t, expr.Arguments[1], 2, "*", 3)
+	testInfixExpression(t, expr.Arguments[2], 4, "+", 5)
 }
 
 func testIntegerLiteral(t *testing.T, il ast.Expression, value int64) bool {
