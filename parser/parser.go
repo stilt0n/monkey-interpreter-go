@@ -315,13 +315,16 @@ func (p *Parser) parseLetStatement() *ast.LetStatement {
 	}
 
 	statement.Name = &ast.Identifier{Token: p.currentToken, Value: p.currentToken.Literal}
+
 	if !p.expectPeek(token.ASSIGN) {
 		return nil
 	}
 
-	// TODO: Implement expression parsing
+	p.nextToken()
 
-	for !p.currentTokenIs(token.SEMICOLON) {
+	statement.Value = p.parseExpression(LOWEST)
+
+	if p.peekToken.Type == token.SEMICOLON {
 		p.nextToken()
 	}
 
@@ -332,10 +335,12 @@ func (p *Parser) parseReturnStatement() *ast.ReturnStatement {
 	statement := &ast.ReturnStatement{Token: p.currentToken}
 	p.nextToken()
 
-	// TODO: parse expression
-	for !p.currentTokenIs(token.SEMICOLON) {
+	statement.ReturnValue = p.parseExpression(LOWEST)
+
+	if p.peekToken.Type == token.SEMICOLON {
 		p.nextToken()
 	}
+
 	return statement
 }
 

@@ -8,65 +8,60 @@ import (
 )
 
 func TestLetStatements(t *testing.T) {
-	input := `
-let x = 5;
-let y = 10;
-let foobar = 838383;
-`
-	lex := lexer.New(input)
-	pars := New(lex)
-
-	program := pars.ParseProgram()
-	checkForParserErrors(t, pars)
-
-	if program == nil {
-		t.Fatalf("expected program not to be nil")
-	}
-
-	if len(program.Statements) != 3 {
-		t.Fatalf("Expected 3 statements got %d", len(program.Statements))
-	}
-
 	tests := []struct {
+		input              string
 		expectedIdentifier string
+		expectedValue      interface{}
 	}{
-		{"x"},
-		{"y"},
-		{"foobar"},
+		{"let x = 5;", "x", 5},
+		{"let y = true;", "y", true},
+		{"let foobar = y", "foobar", "y"},
 	}
-
-	for i, tt := range tests {
-		statement := program.Statements[i]
+	for _, tt := range tests {
+		pars := New(lexer.New(tt.input))
+		program := pars.ParseProgram()
+		checkForParserErrors(t, pars)
+		if len(program.Statements) != 1 {
+			t.Fatalf("Expected 1 statement. Got %d", len(program.Statements))
+		}
+		statement := program.Statements[0]
 		if !testLetStatement(t, statement, tt.expectedIdentifier) {
+			return
+		}
+		val := statement.(*ast.LetStatement).Value
+		if !testLiteralExpression(t, val, tt.expectedValue) {
 			return
 		}
 	}
 }
 
 func TestReturnStatements(t *testing.T) {
-	input := `
-return 8;
-return 100;
-return 928532;
-`
-	lex := lexer.New(input)
-	pars := New(lex)
-
-	program := pars.ParseProgram()
-	checkForParserErrors(t, pars)
-
-	if len(program.Statements) != 3 {
-		t.Fatalf("Expected 3 statements. Got %d", len(program.Statements))
+	tests := []struct {
+		input      string
+		expectedRV interface{}
+	}{
+		{"return 5;", 5},
+		{"return true;", true},
+		{"return foobar;", "foobar"},
 	}
-
-	for _, statement := range program.Statements {
+	for _, tt := range tests {
+		pars := New(lexer.New(tt.input))
+		program := pars.ParseProgram()
+		checkForParserErrors(t, pars)
+		if len(program.Statements) != 1 {
+			t.Fatalf("Expected 1 statement. Got %d", len(program.Statements))
+		}
+		statement := program.Statements[0]
+		if statement.TokenLiteral() != "return" {
+			t.Fatalf("Expected return statement's token literal to be 'return'. Got %s", statement.TokenLiteral())
+		}
 		returnStatement, ok := statement.(*ast.ReturnStatement)
 		if !ok {
-			t.Errorf("expected statement to be *ast.ReturnStatement. Got %T", statement)
-			continue
+			t.Fatalf("Expected return statement's type to be *ast.ReturnStatement. Got %T", statement)
 		}
-		if returnStatement.TokenLiteral() != "return" {
-			t.Errorf("expected statement.TokenLiteral() to return 'return'. Got %q", returnStatement.TokenLiteral())
+
+		if !testLiteralExpression(t, returnStatement.ReturnValue, tt.expectedRV) {
+			return
 		}
 	}
 }
