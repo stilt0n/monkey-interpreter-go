@@ -5,6 +5,13 @@ import (
 	"monkey-pl/object"
 )
 
+// for boolean literals there's no reason to recreate them
+// when we can just point to the same object
+var (
+	TRUE  = &object.Boolean{Value: true}
+	FALSE = &object.Boolean{Value: false}
+)
+
 func Eval(node ast.Node) object.Object {
 	switch node := node.(type) {
 	case *ast.Program:
@@ -14,7 +21,7 @@ func Eval(node ast.Node) object.Object {
 	case *ast.IntegerLiteral:
 		return &object.Integer{Value: node.Value}
 	case *ast.BooleanLiteral:
-		return &object.Boolean{Value: node.Value}
+		return objectFromBool(node.Value)
 	}
 	return nil
 }
@@ -25,4 +32,12 @@ func evalStatements(statements []ast.Statement) object.Object {
 		result = Eval(statement)
 	}
 	return result
+}
+
+func objectFromBool(input bool) *object.Boolean {
+	if input {
+		return TRUE
+	} else {
+		return FALSE
+	}
 }
