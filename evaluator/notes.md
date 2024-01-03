@@ -199,6 +199,13 @@ Book recommends [Wren source code](https://github.com/wren-lang/wren)
 These are expressions where what you type into the
 repl should be the output you receive.
 
+## Design decisions
+
+- Using truthy and falsey values
+- In Monkey:
+  - FALSE and NULL are falsey
+  - All other values (including 0) are truthy
+
 ### Example
 
 Given an `*ast.IntegerLiteral` `Eval` should return an

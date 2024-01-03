@@ -82,6 +82,32 @@ func TestBooleanOperator(t *testing.T) {
 	}
 }
 
+func TestIfElseExpressions(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected interface{}
+	}{
+		{"if (true) { 10 }", 10},
+		{"if (false) { 10 }", nil},
+		{"if (1) { 1 }", 1},
+		{"if (0) { 1 }", 1},
+		{"if (1 > 2) { 100 }", nil},
+		{"if (!(1 > 2)) { 100 }", 100},
+		{"if (1 < 2) { 100 }", 100},
+		{"if (false) { 10 } else { 20 }", 20},
+		{"if (true) { 10 } else { 20 }", 10},
+	}
+	for _, tc := range tests {
+		evaluated := testEval(tc.input)
+		output, ok := tc.expected.(int)
+		if ok {
+			testIntegerObject(t, evaluated, int64(output))
+		} else {
+			testNullObject(t, evaluated)
+		}
+	}
+}
+
 func testEval(input string) object.Object {
 	lex := lexer.New(input)
 	p := parser.New(lex)
@@ -117,5 +143,13 @@ func testBooleanObject(t *testing.T, obj object.Object, expected bool) bool {
 		return false
 	}
 
+	return true
+}
+
+func testNullObject(t *testing.T, obj object.Object) bool {
+	if obj != NULL {
+		t.Errorf("Expected returned object to be NULL. Got %T (%+v)", obj, obj)
+		return false
+	}
 	return true
 }
