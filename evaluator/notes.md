@@ -199,14 +199,43 @@ Book recommends [Wren source code](https://github.com/wren-lang/wren)
 These are expressions where what you type into the
 repl should be the output you receive.
 
-## Design decisions
-
-- Using truthy and falsey values
-- In Monkey:
-  - FALSE and NULL are falsey
-  - All other values (including 0) are truthy
-
 ### Example
 
 Given an `*ast.IntegerLiteral` `Eval` should return an
 `*object.Integer` with `Value=*ast.IntegerLiteral.Value`
+
+## Design decisions
+
+- Using truthy and falsey values
+- In Monkey:
+
+  - FALSE and NULL are falsey
+  - All other values (including 0) are truthy
+
+- Return statements can be used top level
+- After return is called, no further statements in block run
+  - The "block" here can also refer to the top level program
+
+e.g. if we feed the interpreter:
+
+```js
+5 + 6 + 7;
+return true;
+// interpreter ignores this
+8 * 2;
+```
+
+The last statement will not run.
+
+## Approach to return statements
+
+Pass a `return value` through evaluator.
+When return is encountered wrap value that needs
+to be returned inside object.
+Then decide if we need to stop eval.
+
+Since return values can be nested multiple block statements
+deep, we will need to change our approach to evaluating blocks.
+
+Now the statements slice of a program will need to be handled
+differently than the statements slice of a block.
