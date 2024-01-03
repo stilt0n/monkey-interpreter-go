@@ -239,3 +239,16 @@ deep, we will need to change our approach to evaluating blocks.
 
 Now the statements slice of a program will need to be handled
 differently than the statements slice of a block.
+
+## Handling errors
+
+Errors are handled in a similar fashion to return statements.
+
+Errors, like return statements, need to stop evalution of
+a series of statements.
+
+### Stack traces
+
+This is sort of an aside. For Monkey we are not implementing
+a stack trace. But this would be possible if we had attached
+info about line / column number during lexing.

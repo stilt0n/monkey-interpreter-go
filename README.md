@@ -28,3 +28,4 @@ the syntaxes of the two languages are very close.
 I may not implement many features beyond what was in the book, but the ones I did are listed here:
 
 - Comments. Can use `#` character for single line comments.
+- Divide by zero error handling. Returns divide by zero error when this is attempted.
