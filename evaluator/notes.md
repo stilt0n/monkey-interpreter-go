@@ -252,3 +252,33 @@ a series of statements.
 This is sort of an aside. For Monkey we are not implementing
 a stack trace. But this would be possible if we had attached
 info about line / column number during lexing.
+
+## `let` statements
+
+To support let statements we need to be able to support binding
+but we also need to be able to support looking up identifiers.
+i.e.
+
+```js
+let x = 5;
+let y = 2 * 3;
+x + y;
+let z = x * y;
+```
+
+all need to work.
+
+To do this we need an environment. For let statements this
+could just be a map. But to make life easier for other stuff
+we're going to wrap a map.
+
+```go
+type Environment struct {
+  store map[string]Object
+  // Get()
+  // Set()
+}
+```
+
+The store maps names to Objects. The environment can then
+be passed to eval.

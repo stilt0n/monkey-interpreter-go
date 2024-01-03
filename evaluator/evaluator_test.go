@@ -178,6 +178,10 @@ func TestErrorHandling(t *testing.T) {
 			"2 / (5 - 5)",
 			"illegal operation: divide by zero",
 		},
+		{
+			"foobar;",
+			"identifier not found: foobar",
+		},
 	}
 
 	for _, tc := range tests {
@@ -193,12 +197,28 @@ func TestErrorHandling(t *testing.T) {
 	}
 }
 
+func TestLetStatements(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected int64
+	}{
+		{"let a = 5; a;", 5},
+		{"let x = 5 * 5; x;", 25},
+		{"let a = 5; let b = a; b;", 5},
+		{"let a = 5; let b = a; let c = a + b + 5; c;", 15},
+	}
+
+	for _, tc := range tests {
+		testIntegerObject(t, testEval(tc.input), tc.expected)
+	}
+}
+
 func testEval(input string) object.Object {
 	lex := lexer.New(input)
 	p := parser.New(lex)
 	program := p.ParseProgram()
 
-	return Eval(program)
+	return Eval(program, object.NewEnvironment())
 }
 
 func testIntegerObject(t *testing.T, obj object.Object, expected int64) bool {

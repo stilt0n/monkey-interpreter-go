@@ -6,6 +6,7 @@ import (
 	"io"
 	"monkey-pl/evaluator"
 	"monkey-pl/lexer"
+	"monkey-pl/object"
 	"monkey-pl/parser"
 	"runtime"
 )
@@ -28,6 +29,8 @@ func Start(in io.Reader, out io.Writer) {
 	yellow := func(str string) string {
 		return fmt.Sprintf("%s%s%s", evalColorCodes[0], str, evalColorCodes[1])
 	}
+	// this will allow let definitions to continue to be remembered
+	env := object.NewEnvironment()
 	for {
 		fmt.Fprint(out, PROMPT)
 		scanned := scanner.Scan()
@@ -48,7 +51,7 @@ func Start(in io.Reader, out io.Writer) {
 			continue
 		}
 
-		evaluated := evaluator.Eval(program)
+		evaluated := evaluator.Eval(program, env)
 		if evaluated != nil {
 			io.WriteString(out, yellow(evaluated.Inspect()))
 			io.WriteString(out, "\n")
