@@ -282,3 +282,78 @@ type Environment struct {
 
 The store maps names to Objects. The environment can then
 be passed to eval.
+
+## Functions
+
+Functions need to be represented in our object system.
+
+Ast is a starting point:
+
+```go
+type FunctionLiteral struct {
+  Token token.Token // `fn`
+  Parameters []*Identifier
+  Body *BlockStatement
+}
+```
+
+The function object will need both the parameters and the body.
+The function object will also need access to an Environment for
+closures to work correctly.
+
+Function closures work pretty much how they worked in my
+Principles of Programming languages class.
+
+There's one thing that I'd like to change about the current implementation
+(if we don't address it later in the book):
+
+This code:
+
+```js
+let y = 10;
+let foo = fn(x) { return x + y; };
+fn(2); // => 12
+let y = 1;
+fn(2) // => 3
+```
+
+This is because we're storying a pointer to the outer environment. To
+implement closures they way I generally expect them to work, we'd need
+to copy the outer environment instead. This seems like it would get
+memory intensive though, so I'm curious what the best way to handle it
+would be.
+
+Another interesting thing to implement would be C++ style closures.
+
+In C++ I think the syntax looks a little like this:
+
+```js
+[...environment](...params) { /* function body */ }
+```
+
+The default for a C++ anonymous function does not story any environment
+at all. But you can explicitly add environment into the closure.
+
+It might be an interesting syntax to support both, but with different
+defaults. i.e.:
+
+```js
+let y = 10;
+let z = 4;
+// z would exist in this closure by default
+let foo = fn(x) { return x + y; }
+let a = 3;
+// a and y exist in this closure but not z
+let bar = [y, a]fn(x) { return x + y; }
+```
+
+This example is obviously a little contrived. And I'm not really sure
+there'd be a real benefit to supporting such a syntax. Also, I think
+if I _were_ to support such a syntax I might try going the more mathy
+parameterized functions route:
+
+```
+f(x, y; t)
+```
+
+Where x and y are args and t is env.

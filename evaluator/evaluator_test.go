@@ -213,6 +213,56 @@ func TestLetStatements(t *testing.T) {
 	}
 }
 
+func TestFunctionObject(t *testing.T) {
+	input := "fn(x) { x + 2; };"
+	evaluated := testEval(input)
+	fn, ok := evaluated.(*object.Function)
+	if !ok {
+		t.Fatalf("Expected a function object to be returned. Go %T (%+v)", evaluated, evaluated)
+	}
+
+	if len(fn.Parameters) != 1 {
+		t.Fatalf("Expected function to have 1 parameters. Got %d", len(fn.Parameters))
+	}
+
+	if fn.Parameters[0].String() != "x" {
+		t.Fatalf("Expected function param to be 'x'. Got %q", fn.Parameters[0])
+	}
+
+	expectedBody := "(x + 2)"
+	if fn.Body.String() != expectedBody {
+		t.Fatalf("Expected function body to be %q. Got %q", expectedBody, fn.Body.String())
+	}
+}
+
+func TestFunctionCall(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected int64
+	}{
+		{"let identity = fn(x) { x; }; identity(5);", 5},
+		{"let identity = fn(x) { return x; }; identity(5);", 5},
+		{"let add = fn(x, y) { x + y; }; add(5, 5);", 10},
+		{"let double = fn(x) { x * 2; }; double(15);", 30},
+		{"fn(x) { x; }(1);", 1},
+		{"let add = fn(x, y) { x + y }; add(1, add(2, 3));", 6},
+	}
+	for _, tc := range tests {
+		testIntegerObject(t, testEval(tc.input), tc.expected)
+	}
+}
+
+func TestClosures(t *testing.T) {
+	input := `
+let newAdder = fn(x) {
+	fn(y) { x + y };
+};
+let addTwo = newAdder(2)
+addTwo(2);
+`
+	testIntegerObject(t, testEval(input), 4)
+}
+
 func testEval(input string) object.Object {
 	lex := lexer.New(input)
 	p := parser.New(lex)
