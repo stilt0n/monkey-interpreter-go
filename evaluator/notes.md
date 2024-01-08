@@ -357,3 +357,15 @@ f(x, y; t)
 ```
 
 Where x and y are args and t is env.
+
+## What about Garbage Collection?
+
+Go's garbage collecter actually is doing this for us. So we don't need to
+implement it. If we wrote this in a language without garbage collection we'd
+need to implement garbage collection ourselves.
+
+What a garbage collection does at a high level:
+
+- Keeps track of objects we allocate
+- Make memory available for future allocations
+- Give back memory when it's determined to not be needed
