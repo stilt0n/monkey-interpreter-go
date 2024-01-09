@@ -29,3 +29,4 @@ I may not implement many features beyond what was in the book, but the ones I di
 
 - Comments. Can use `#` character for single line comments.
 - Divide by zero error handling. Returns divide by zero error when this is attempted.
+- Error for function calls with incorrect number of arguments.

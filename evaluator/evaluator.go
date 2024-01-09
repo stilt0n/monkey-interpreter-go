@@ -207,6 +207,9 @@ func applyFunction(fn object.Object, args []object.Object) object.Object {
 	if !ok {
 		return newError("not a function: %s", fn.Type())
 	}
+	if len(function.Parameters) != len(args) {
+		return newError("function was called with an incorrect number of arguments: expected %d", len(function.Parameters))
+	}
 	extendedEnv := extendFunctionEnv(function, args)
 	evaluated := Eval(function.Body, extendedEnv)
 	// unwrap return value here to avoid bubbling up
