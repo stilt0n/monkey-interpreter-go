@@ -35,3 +35,12 @@ I may not implement many features beyond what was in the book, but the ones I di
 
 I've added a server package so that this repl can be run on a
 server. That way I can hopefully build a basic web text editor.
+
+## Organization
+
+There are two main packages:
+
+- `cli`
+- `server`
+
+`cli` runs the repl in the command line. `server` runs an http server that can be sent code to evaluate.
