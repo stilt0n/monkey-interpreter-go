@@ -53,6 +53,9 @@ func handleEvaluate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	code := parsedBody.Code
+	if code == "panic" {
+		panic("received panic!")
+	}
 	env := object.NewEnvironment()
 	lex := lexer.New(code)
 	prs := parser.New(lex)
