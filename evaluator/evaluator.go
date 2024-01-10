@@ -14,6 +14,19 @@ var (
 	NULL  = &object.Null{}
 )
 
+// TODO: come up with a better method to accomplish this
+var stackDepth = 0
+
+func incrementStackDepth() {
+	stackDepth++
+}
+
+func decrementStackDepth() {
+	if stackDepth > 0 {
+		stackDepth--
+	}
+}
+
 func Eval(node ast.Node, env *object.Environment) object.Object {
 	switch node := node.(type) {
 	case *ast.Program:
@@ -210,13 +223,18 @@ func applyFunction(fn object.Object, args []object.Object) object.Object {
 	if len(function.Parameters) != len(args) {
 		return newError("function was called with an incorrect number of arguments: expected %d", len(function.Parameters))
 	}
+	defer decrementStackDepth()
 	extendedEnv := extendFunctionEnv(function, args)
+	if stackDepth > 150 {
+		return newError("maximum stack depth exceeded")
+	}
 	evaluated := Eval(function.Body, extendedEnv)
 	// unwrap return value here to avoid bubbling up
 	return unwrapReturnValue(evaluated)
 }
 
 func extendFunctionEnv(fn *object.Function, args []object.Object) *object.Environment {
+	incrementStackDepth()
 	env := object.NewEnclosedEnvironment(fn.Env)
 	for i, param := range fn.Parameters {
 		env.Set(param.Value, args[i])
