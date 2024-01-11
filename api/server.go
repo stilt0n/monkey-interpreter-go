@@ -28,6 +28,11 @@ type EvalResponse struct {
 	IsError bool `json:"isError"`
 }
 
+func enableCors(w *http.ResponseWriter) {
+	(*w).Header().Set("Access-Control-Allow-Origin", "*")
+	(*w).Header().Set("Access-Control-Allow-Headers", "Content-Type")
+}
+
 func Serve() {
 	log.Printf("Running server on port :%d\n", 5150)
 	http.HandleFunc("/eval", handleEvaluate)
@@ -43,6 +48,7 @@ func Serve() {
 }
 
 func handleEvaluate(w http.ResponseWriter, r *http.Request) {
+	enableCors(&w)
 	if r.Method != "POST" {
 		return
 	}
