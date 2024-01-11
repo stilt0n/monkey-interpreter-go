@@ -1,5 +1,9 @@
 # Monkey interpreter in Go
 
+[You can try this interpreter out here](https://stilt0n.github.io/monkey-client/)
+
+---
+
 This is an interpreter that I am writing following Thorsten Ball's [Writing an Interpreter in Go](https://interpreterbook.com/).
 
 I've been doing infrastructure work lately and at some point it became clear that a large number of the tools I'm responsible for managing are built around programming languages concepts. In particular, ASTs turn out to be ubiquitous in my work and are used in linting, code formatting, refactoring tools like codemods, dependency analysis, and then of course compilation and transpilation.
