@@ -240,21 +240,23 @@ func evalExpressions(exprs []ast.Expression, env *object.Environment) []object.O
 }
 
 func applyFunction(fn object.Object, args []object.Object) object.Object {
-	function, ok := fn.(*object.Function)
-	if !ok {
+	switch fn := fn.(type) {
+	case *object.Function:
+		if len(fn.Parameters) != len(args) {
+			return newError("function was called with an incorrect number of arguments: expected %d", len(fn.Parameters))
+		}
+		defer decrementStackDepth()
+		extendedEnv := extendFunctionEnv(fn, args)
+		if stackDepth > 150 {
+			return newError("maximum stack depth exceeded")
+		}
+		evaluated := Eval(fn.Body, extendedEnv)
+		return unwrapReturnValue(evaluated)
+	case *object.Builtin:
+		return fn.Fn(args...)
+	default:
 		return newError("not a function: %s", fn.Type())
 	}
-	if len(function.Parameters) != len(args) {
-		return newError("function was called with an incorrect number of arguments: expected %d", len(function.Parameters))
-	}
-	defer decrementStackDepth()
-	extendedEnv := extendFunctionEnv(function, args)
-	if stackDepth > 150 {
-		return newError("maximum stack depth exceeded")
-	}
-	evaluated := Eval(function.Body, extendedEnv)
-	// unwrap return value here to avoid bubbling up
-	return unwrapReturnValue(evaluated)
 }
 
 func extendFunctionEnv(fn *object.Function, args []object.Object) *object.Environment {
@@ -287,11 +289,13 @@ func evalMinusPrefixOperator(right object.Object) object.Object {
 }
 
 func evalIdentifier(node *ast.Identifier, env *object.Environment) object.Object {
-	value, ok := env.Get(node.Value)
-	if !ok {
-		return newError("identifier not found: " + node.Value)
+	if value, ok := env.Get(node.Value); ok {
+		return value
 	}
-	return value
+	if builtin, ok := builtins[node.Value]; ok {
+		return builtin
+	}
+	return newError("identifier not found: " + node.Value)
 }
 
 func objectFromBool(input bool) *object.Boolean {
