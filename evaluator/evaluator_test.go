@@ -64,6 +64,19 @@ func TestEvalBooleanExpression(t *testing.T) {
 	}
 }
 
+func TestEvalStringExpression(t *testing.T) {
+	input := `"Hello, World!"`
+	evaluated := testEval(input)
+	str, ok := evaluated.(*object.String)
+	if !ok {
+		t.Fatalf("Expected object to be a string. Got %T (%+v)", evaluated, evaluated)
+	}
+
+	if str.Value != "Hello, World!" {
+		t.Errorf("Expected string to have value 'Hello, World!'. Got %s", str.Value)
+	}
+}
+
 func TestBooleanOperator(t *testing.T) {
 	tests := []struct {
 		input    string
