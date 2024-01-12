@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"monkey-pl/ast"
 	"monkey-pl/object"
+	"strings"
 )
 
 // for boolean literals there's no reason to recreate them
@@ -136,6 +137,8 @@ func evalInfixExpression(operator string, left, right object.Object) object.Obje
 		return evalIntegerInfixExpression(operator, left, right)
 	// Note: these pointer comparisons work now because ints get evaluated above
 	// but if we add more datatypes (e.g. strings) we may need to change this
+	case left.Type() == object.STRING_OBJ && right.Type() == object.STRING_OBJ:
+		return evalStringInfixExpression(operator, left, right)
 	case operator == "==":
 		return objectFromBool(left == right)
 	case operator == "!=":
@@ -172,6 +175,25 @@ func evalIntegerInfixExpression(operator string, left, right object.Object) obje
 		return objectFromBool(lval == rval)
 	case "!=":
 		return objectFromBool(lval != rval)
+	default:
+		return newError("unknown operator: %s %s %s", left.Type(), operator, right.Type())
+	}
+}
+
+func evalStringInfixExpression(operator string, left, right object.Object) object.Object {
+	lval := left.(*object.String).Value
+	rval := right.(*object.String).Value
+	switch operator {
+	case "+":
+		return &object.String{Value: lval + rval}
+	case "==":
+		return &object.Boolean{Value: strings.Compare(lval, rval) == 0}
+	case "!=":
+		return &object.Boolean{Value: strings.Compare(lval, rval) != 0}
+	case "<":
+		return &object.Boolean{Value: strings.Compare(lval, rval) == -1}
+	case ">":
+		return &object.Boolean{Value: strings.Compare(lval, rval) == 1}
 	default:
 		return newError("unknown operator: %s %s %s", left.Type(), operator, right.Type())
 	}
@@ -256,6 +278,9 @@ func evalMinusPrefixOperator(right object.Object) object.Object {
 	case object.INTEGER_OBJ:
 		value := right.(*object.Integer).Value
 		return &object.Integer{Value: -value}
+	case object.STRING_OBJ:
+		value := right.(*object.String).Value
+		return &object.String{Value: reversed(value)}
 	default:
 		return newError("unknown operator: -%s", right.Type())
 	}
@@ -295,4 +320,12 @@ func isError(obj object.Object) bool {
 		return obj.Type() == object.ERROR_OBJ
 	}
 	return false
+}
+
+func reversed(s string) string {
+	runes := []rune(s)
+	for i, j := 0, len(runes)-1; i < j; i, j = i+1, j-1 {
+		runes[i], runes[j] = runes[j], runes[i]
+	}
+	return string(runes)
 }

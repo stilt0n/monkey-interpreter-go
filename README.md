@@ -36,6 +36,8 @@ I may not implement many features beyond what was in the book, but the ones I di
 - Error for function calls with incorrect number of arguments.
 - Check for bottomless recursion and give error when stack depth is too deep
 - Add error for unterminated strings (error is a little cryptic though)
+- String comparison (==, !=, <, >)
+- Negative operator in front of a string reverses it (e.g `-"abc" == "cba"`)
 
 ## Other stuff
 
