@@ -1,6 +1,7 @@
 package lexer
 
 import (
+	"errors"
 	"monkey-pl/token"
 )
 
@@ -81,6 +82,13 @@ func (lex *Lexer) NextToken() token.Token {
 		tok = newToken(token.LBRACE, lex.ch)
 	case '}':
 		tok = newToken(token.RBRACE, lex.ch)
+	case '"':
+		literal, err := lex.readString()
+		if err != nil {
+			tok = newToken(token.ILLEGAL, lex.ch)
+		}
+		tok.Type = token.STRING
+		tok.Literal = literal
 	case 0:
 		tok.Literal = ""
 		tok.Type = token.EOF
@@ -94,7 +102,6 @@ func (lex *Lexer) NextToken() token.Token {
 			tok.Literal = lex.readNumber()
 			return tok
 		} else {
-			// TODO: support comments
 			tok = newToken(token.ILLEGAL, lex.ch)
 		}
 	}
@@ -128,6 +135,20 @@ func (lex *Lexer) readIdentifier() string {
 		lex.readChar()
 	}
 	return lex.input[startPosition:lex.position]
+}
+
+func (lex *Lexer) readString() (string, error) {
+	startPosition := lex.position + 1
+	for {
+		lex.readChar()
+		if lex.ch == '"' {
+			break
+		}
+		if lex.ch == 0 {
+			return "", errors.New("unexpected EOF in string")
+		}
+	}
+	return lex.input[startPosition:lex.position], nil
 }
 
 func (lex *Lexer) readNumber() string {

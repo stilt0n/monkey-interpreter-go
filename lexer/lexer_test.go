@@ -63,6 +63,8 @@ func TestNextToken(t *testing.T) {
 	10 == 10;
 	10 != 9;
 
+	"foobar";
+	"foo bar";
 	# Will a comment work at the end??
 	`
 	tests := []struct {
@@ -154,6 +156,12 @@ func TestNextToken(t *testing.T) {
 		{token.INT, "10"},
 		{token.NEQ, "!="},
 		{token.INT, "9"},
+		{token.SEMICOLON, ";"},
+		// "foobar";
+		{token.STRING, "foobar"},
+		{token.SEMICOLON, ";"},
+		// "foo bar";
+		{token.STRING, "foo bar"},
 		{token.SEMICOLON, ";"},
 		// EOF
 		{token.EOF, ""},
