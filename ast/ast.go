@@ -112,6 +112,21 @@ func (b *BooleanLiteral) String() string {
 	return b.Token.Literal
 }
 
+type StringLiteral struct {
+	Value string
+	Token token.Token
+}
+
+func (s *StringLiteral) expressionNode() {}
+
+func (s *StringLiteral) TokenLiteral() string {
+	return s.Token.Literal
+}
+
+func (s *StringLiteral) String() string {
+	return s.Token.Literal
+}
+
 type PrefixExpression struct {
 	Token    token.Token // prefix token
 	Operator string
