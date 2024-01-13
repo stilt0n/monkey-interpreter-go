@@ -372,6 +372,14 @@ func TestOperatorPrecedence(t *testing.T) {
 			"add(a, b, 1, 2 * 3, 4 + 5, add(6, 7 * 8))",
 			"add(a, b, 1, (2 * 3), (4 + 5), add(6, (7 * 8)))",
 		},
+		{
+			"a * [1, 2, 3, 4][b * c] * d",
+			"((a * ([1, 2, 3, 4][(b * c)])) * d)",
+		},
+		{
+			"add(a * b[2], b[1], 2 * [1, 2][1])",
+			"add((a * (b[2])), (b[1]), (2 * ([1, 2][1])))",
+		},
 	}
 
 	for _, tt := range tests {
@@ -605,6 +613,27 @@ func TestArrayLiteral(t *testing.T) {
 	testIntegerLiteral(t, array.Elements[0], 1)
 	testInfixExpression(t, array.Elements[1], 2, "*", 2)
 	testInfixExpression(t, array.Elements[2], 3, "+", 3)
+}
+
+func TestIndexExpression(t *testing.T) {
+	input := "arr[1 + 1];"
+	pars := New(lexer.New(input))
+	program := pars.ParseProgram()
+	checkForParserErrors(t, pars)
+
+	statement := program.Statements[0].(*ast.ExpressionStatement)
+	indexExpr, ok := statement.Expression.(*ast.IndexExpression)
+	if !ok {
+		t.Fatalf("Expected expression to be an IndexExpression. Got %T", statement.Expression)
+	}
+
+	if !testIdentifier(t, indexExpr.Left, "arr") {
+		return
+	}
+
+	if !testInfixExpression(t, indexExpr.Index, 1, "+", 1) {
+		return
+	}
 }
 
 func testIntegerLiteral(t *testing.T, il ast.Expression, value int64) bool {
