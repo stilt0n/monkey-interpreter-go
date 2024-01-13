@@ -65,6 +65,7 @@ func TestNextToken(t *testing.T) {
 
 	"foobar";
 	"foo bar";
+	[1, 2];
 	# Will a comment work at the end??
 	`
 	tests := []struct {
@@ -162,6 +163,13 @@ func TestNextToken(t *testing.T) {
 		{token.SEMICOLON, ";"},
 		// "foo bar";
 		{token.STRING, "foo bar"},
+		{token.SEMICOLON, ";"},
+		// [1, 2];
+		{token.LBRACKET, "["},
+		{token.INT, "1"},
+		{token.COMMA, ","},
+		{token.INT, "2"},
+		{token.RBRACKET, "]"},
 		{token.SEMICOLON, ";"},
 		// EOF
 		{token.EOF, ""},
