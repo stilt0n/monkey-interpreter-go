@@ -84,7 +84,11 @@ func handleEvaluate(w http.ResponseWriter, r *http.Request) {
 	} else {
 		response.Result = evaluated.Inspect()
 	}
-	response.IsError = false
+	if evaluated.Type() == object.ERROR_OBJ {
+		response.IsError = true
+	} else {
+		response.IsError = false
+	}
 	sendJson(w, func() (interface{}, error) {
 		return response, nil
 	})
