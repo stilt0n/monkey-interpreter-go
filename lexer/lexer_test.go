@@ -67,6 +67,7 @@ func TestNextToken(t *testing.T) {
 	"foo bar";
 	[1, 2];
 	{"foo": "bar"}
+	while (x < 5) { x; }
 	# Will a comment work at the end??
 	`
 	tests := []struct {
@@ -177,6 +178,17 @@ func TestNextToken(t *testing.T) {
 		{token.STRING, "foo"},
 		{token.COLON, ":"},
 		{token.STRING, "bar"},
+		{token.RBRACE, "}"},
+		// while (x < 5) { x; }
+		{token.WHILE, "while"},
+		{token.LPAREN, "("},
+		{token.IDENT, "x"},
+		{token.LT, "<"},
+		{token.INT, "5"},
+		{token.RPAREN, ")"},
+		{token.LBRACE, "{"},
+		{token.IDENT, "x"},
+		{token.SEMICOLON, ";"},
 		{token.RBRACE, "}"},
 		// EOF
 		{token.EOF, ""},
