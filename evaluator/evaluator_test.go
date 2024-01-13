@@ -327,6 +327,23 @@ func TestBuiltinFunctions(t *testing.T) {
 	}
 }
 
+func TestArrayLiterals(t *testing.T) {
+	input := "[1, 2 * 2, 3 + 3]"
+	evaluated := testEval(input)
+	results, ok := evaluated.(*object.Array)
+	if !ok {
+		t.Fatalf("Expected object to be an Array. Got %T (%+v)", evaluated, evaluated)
+	}
+
+	if len(results.Elements) != 3 {
+		t.Fatalf("Expected array to have 3 elements. Got %d", len(results.Elements))
+	}
+
+	testIntegerObject(t, results.Elements[0], 1)
+	testIntegerObject(t, results.Elements[1], 4)
+	testIntegerObject(t, results.Elements[2], 6)
+}
+
 func testEval(input string) object.Object {
 	lex := lexer.New(input)
 	p := parser.New(lex)
