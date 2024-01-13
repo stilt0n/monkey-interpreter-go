@@ -39,6 +39,7 @@ I may not implement many features beyond what was in the book, but the ones I di
 - String comparison (==, !=, <, >)
 - Negative operator in front of a string reverses it (e.g `-"abc" == "cba"`)
 - split, join, toUpperCase, and toLowerCase functions
+- `while` loops
 
 ## Other stuff
 
