@@ -68,6 +68,16 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 			return right
 		}
 		return evalInfixExpression(node.Operator, left, right)
+	case *ast.IndexExpression:
+		left := Eval(node.Left, env)
+		if isError(left) {
+			return left
+		}
+		index := Eval(node.Index, env)
+		if isError(index) {
+			return index
+		}
+		return evalIndexExpression(left, index)
 	case *ast.CallExpression:
 		function := Eval(node.Function, env)
 		if isError(function) {
@@ -203,6 +213,24 @@ func evalStringInfixExpression(operator string, left, right object.Object) objec
 	default:
 		return newError("unknown operator: %s %s %s", left.Type(), operator, right.Type())
 	}
+}
+
+func evalIndexExpression(left object.Object, index object.Object) object.Object {
+	switch {
+	case left.Type() == object.ARRAY_OBJ && index.Type() == object.INTEGER_OBJ:
+		lval := left.(*object.Array)
+		i := index.(*object.Integer)
+		return evalArrayIndexExpression(lval, i)
+	default:
+		return newError("index operator not supported for type %s", left.Type())
+	}
+}
+
+func evalArrayIndexExpression(left *object.Array, index *object.Integer) object.Object {
+	if index.Value < 0 || index.Value >= int64(len(left.Elements)) || len(left.Elements) == 0 {
+		return NULL
+	}
+	return left.Elements[index.Value]
 }
 
 func evalIfExpression(expr *ast.IfExpression, env *object.Environment) object.Object {

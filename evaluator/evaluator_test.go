@@ -309,6 +309,9 @@ func TestBuiltinFunctions(t *testing.T) {
 		{`len("ab c")`, 4},
 		{`len(1)`, "argument to `len` not supported, got INTEGER"},
 		{`len("one", "two")`, "wrong number of arguments. Expected 1. Got 2."},
+		{`len([1, 2, 3]);`, 3},
+		{`len(["alpha", "beta", "gamma"])`, 3},
+		{`len([])`, 0},
 	}
 	for _, tc := range tests {
 		evaluated := testEval(tc.input)
@@ -342,6 +345,63 @@ func TestArrayLiterals(t *testing.T) {
 	testIntegerObject(t, results.Elements[0], 1)
 	testIntegerObject(t, results.Elements[1], 4)
 	testIntegerObject(t, results.Elements[2], 6)
+}
+
+func TestArrayINdexExpressions(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected interface{}
+	}{
+		{
+			"[1, 2, 3][0]",
+			1,
+		},
+		{
+			"[1,2,3][1]",
+			2,
+		},
+		{
+			"[1, 2, 3][2]",
+			3,
+		},
+		{
+			"let i = 0; [1][i];",
+			1,
+		},
+		{
+			"[1, 2, 3][1 + 1];",
+			3,
+		},
+		{
+			"let arr = [1, 2, 3]; arr[2];",
+			3,
+		},
+		{
+			"let arr = [1, 2, 3]; arr[0] + arr[1] + arr[2];",
+			6,
+		},
+		{
+			"let arr = [1, 2, 3]; let i = arr[0]; arr[i];",
+			2,
+		},
+		{
+			"[1, 2, 3][3]",
+			nil,
+		},
+		{
+			"[1, 2, 3][-1]",
+			nil,
+		},
+	}
+	for _, tc := range tests {
+		evaluated := testEval(tc.input)
+		integer, ok := tc.expected.(int)
+		if ok {
+			testIntegerObject(t, evaluated, int64(integer))
+		} else {
+			testNullObject(t, evaluated)
+		}
+	}
 }
 
 func testEval(input string) object.Object {
