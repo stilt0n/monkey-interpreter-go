@@ -1,6 +1,9 @@
 package evaluator
 
-import "monkey-pl/object"
+import (
+	"log"
+	"monkey-pl/object"
+)
 
 var builtins = map[string]*object.Builtin{
 	"len": {
@@ -18,6 +21,7 @@ var builtins = map[string]*object.Builtin{
 			}
 		},
 	},
+	"print":       {Fn: print},
 	"first":       {Fn: first},
 	"rest":        {Fn: rest},
 	"last":        {Fn: last},
@@ -26,4 +30,12 @@ var builtins = map[string]*object.Builtin{
 	"toUpperCase": {Fn: toUpperCase},
 	"toLowerCase": {Fn: toLowerCase},
 	"split":       {Fn: split},
+}
+
+// Called `puts` in the book.
+func print(args ...object.Object) object.Object {
+	for _, arg := range args {
+		log.Println(arg.Inspect())
+	}
+	return NULL
 }
