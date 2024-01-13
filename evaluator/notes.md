@@ -369,3 +369,44 @@ What a garbage collection does at a high level:
 - Keeps track of objects we allocate
 - Make memory available for future allocations
 - Give back memory when it's determined to not be needed
+
+## Hashes
+
+Most of the data types used so far can just make use of Go's data types. But
+for hashes this is a little harder. We could make:
+
+```go
+type InternalHash map[Object]Object
+```
+
+But then we run into a problem because two objects that are equal in Monkey will
+not have equal pointers in Go. So they will be seen as different.
+
+To deal with this we'll have all hashes be 'scoped' unsigned ints.
+
+Basically a hash will look like this:
+
+```go
+type HashKey struct {
+  Type ObjectType
+  Value uint64
+}
+```
+
+Since the Type scopes the keys, we don't have to worry about
+bools, ints or strings colliding with hashes of other types.
+
+So for ints and bools we can just use numbers directly:
+
+- Bools can be 1 or 0
+- Ints can be the actual int
+
+Finally for strings, we can import a Hash function from
+Go's standard library and hash the string.
+
+### Note about hash keys
+
+Note that it is technically possible for String hashes to
+collide in this implementation. We're not implementing any
+kind of mitigation for this, but this could be another
+improvement to consider adding later.
