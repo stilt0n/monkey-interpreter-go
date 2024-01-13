@@ -226,6 +226,14 @@ func TestErrorHandling(t *testing.T) {
 			`let f = fn(x) { x; }; { f: "Monkey" };`,
 			"unhashable object used as a hash key: FUNCTION",
 		},
+		{
+			`let func = fn(x) { func(x + 1); }; func(1);`,
+			"maximum stack depth exceeded",
+		},
+		{
+			`while (true) { x; };`,
+			"maximum iteration count exceeded",
+		},
 	}
 
 	for _, tc := range tests {
@@ -491,6 +499,19 @@ func TestHashIndexExpressions(t *testing.T) {
 		} else {
 			testNullObject(t, evaluated)
 		}
+	}
+}
+
+func TestWhileExpression(t *testing.T) {
+	input := `let i = 0; while (i < 10) { let i = i + 1; }; i;`
+	evaluated := testEval(input)
+	result, ok := evaluated.(*object.Integer)
+	if !ok {
+		t.Fatalf("expected result to be of type *object.Integer. Got %T instead.", evaluated)
+	}
+
+	if !testIntegerObject(t, result, 10) {
+		return
 	}
 }
 

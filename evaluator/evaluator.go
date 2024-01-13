@@ -94,6 +94,8 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 		return evalBlockStatement(node, env)
 	case *ast.IfExpression:
 		return evalIfExpression(node, env)
+	case *ast.WhileExpression:
+		return evalWhileExpression(node, env)
 	case *ast.ReturnStatement:
 		value := Eval(node.ReturnValue, env)
 		if isError(value) {
@@ -288,6 +290,26 @@ func evalIfExpression(expr *ast.IfExpression, env *object.Environment) object.Ob
 	} else {
 		return NULL
 	}
+}
+
+func evalWhileExpression(expr *ast.WhileExpression, env *object.Environment) object.Object {
+	condition := Eval(expr.Condition, env)
+	iterCount := 0
+	if isError(condition) {
+		return condition
+	}
+	for isTruthy(condition) && iterCount < 1000 {
+		Eval(expr.Body, env)
+		iterCount++
+		condition = Eval(expr.Condition, env)
+	}
+	if iterCount >= 1000 {
+		return newError("maximum iteration count exceeded")
+	}
+	// It would have arguably been more idiomatic to return the result of the final eval call
+	// here. In this case you could assign variables to the result of `while` (you can still do
+	// this but they will always end up NULL). I chose not to do this though.
+	return NULL
 }
 
 func evalBangOperatorExpression(right object.Object) object.Object {
