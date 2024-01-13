@@ -204,7 +204,7 @@ func (f *FunctionLiteral) String() string {
 }
 
 type ArrayLiteral struct {
-	Token    token.Token // '[' token
+	Token    token.Token // `[` token
 	Elements []Expression
 }
 
@@ -223,6 +223,29 @@ func (a *ArrayLiteral) String() string {
 	out.WriteString("[")
 	out.WriteString(strings.Join(elements, ", "))
 	out.WriteString("]")
+	return out.String()
+}
+
+type HashLiteral struct {
+	Token token.Token // `{` token
+	Pairs map[Expression]Expression
+}
+
+func (h *HashLiteral) expressionNode() {}
+
+func (h *HashLiteral) TokenLiteral() string {
+	return h.Token.Literal
+}
+
+func (h *HashLiteral) String() string {
+	var out bytes.Buffer
+	pairs := []string{}
+	for key, value := range h.Pairs {
+		pairs = append(pairs, key.String()+":"+value.String())
+	}
+	out.WriteString("{")
+	out.WriteString(strings.Join(pairs, ", "))
+	out.WriteString("}")
 	return out.String()
 }
 
