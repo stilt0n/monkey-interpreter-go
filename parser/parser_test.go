@@ -494,6 +494,45 @@ func TestIfElseExpression(t *testing.T) {
 	}
 }
 
+func TestWhileExpression(t *testing.T) {
+	input := "while (x < y) { x; }"
+	lex := lexer.New(input)
+	pars := New(lex)
+	program := pars.ParseProgram()
+	checkForParserErrors(t, pars)
+
+	if len(program.Statements) != 1 {
+		t.Fatalf("Expected program to have 1 statement. Got %d", len(program.Statements))
+	}
+
+	statement, ok := program.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Fatalf("Expected program statement to be an expression statement. Got %T", program.Statements[0])
+	}
+
+	expr, ok := statement.Expression.(*ast.WhileExpression)
+	if !ok {
+		t.Fatalf("Expected statement expression to be of type *ast.WhileExpression. Got %T", statement.Expression)
+	}
+
+	if !testInfixExpression(t, expr.Condition, "x", "<", "y") {
+		return
+	}
+
+	if len(expr.Body.Statements) != 1 {
+		t.Errorf("Expected loop body to have 1 statement. Got %d", len(expr.Body.Statements))
+	}
+
+	body, ok := expr.Body.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Fatalf("Expected body statement to be of type *ast.ExpressionStatement")
+	}
+
+	if !testIdentifier(t, body.Expression, "x") {
+		return
+	}
+}
+
 func TestFunctionLiteralExpression(t *testing.T) {
 	input := "fn(x, y) { x + y; }"
 	lex := lexer.New(input)
