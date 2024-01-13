@@ -410,3 +410,6 @@ Note that it is technically possible for String hashes to
 collide in this implementation. We're not implementing any
 kind of mitigation for this, but this could be another
 improvement to consider adding later.
+
+Another possible optimization: cache results of HashKey() calls
+to avoid recalculating on subsequent calls.
