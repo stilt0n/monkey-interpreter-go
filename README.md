@@ -38,6 +38,7 @@ I may not implement many features beyond what was in the book, but the ones I di
 - Add error for unterminated strings (error is a little cryptic though)
 - String comparison (==, !=, <, >)
 - Negative operator in front of a string reverses it (e.g `-"abc" == "cba"`)
+- split, join, toUpperCase, and toLowerCase functions
 
 ## Other stuff
 
