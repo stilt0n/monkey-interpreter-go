@@ -58,6 +58,7 @@ func New(l *lexer.Lexer) *Parser {
 	p.registerPrefix(token.BANG, p.parsePrefixExpression)
 	p.registerPrefix(token.MINUS, p.parsePrefixExpression)
 	p.registerPrefix(token.LPAREN, p.parseGroupedExpression)
+	p.registerPrefix(token.LBRACKET, p.parseArrayLiteral)
 	p.registerPrefix(token.IF, p.parseIfExpression)
 	p.registerPrefix(token.FUNCTION, p.parseFunctionLiteral)
 	p.registerPrefix(token.STRING, p.parseStringLiteral)
@@ -174,32 +175,8 @@ func (p *Parser) parseInfixExpression(left ast.Expression) ast.Expression {
 
 func (p *Parser) parseCallExpression(function ast.Expression) ast.Expression {
 	expr := &ast.CallExpression{Token: p.currentToken, Function: function}
-	expr.Arguments = p.parseCallArguments()
+	expr.Arguments = p.parseExpressionList(token.RPAREN)
 	return expr
-}
-
-func (p *Parser) parseCallArguments() []ast.Expression {
-	args := []ast.Expression{}
-
-	if p.peekToken.Type == token.RPAREN {
-		p.nextToken()
-		return args
-	}
-
-	p.nextToken()
-	args = append(args, p.parseExpression(LOWEST))
-
-	for p.peekToken.Type == token.COMMA {
-		p.nextToken()
-		p.nextToken()
-		args = append(args, p.parseExpression(LOWEST))
-	}
-
-	if !p.expectPeek(token.RPAREN) {
-		return nil
-	}
-
-	return args
 }
 
 func (p *Parser) parseGroupedExpression() ast.Expression {
@@ -211,6 +188,36 @@ func (p *Parser) parseGroupedExpression() ast.Expression {
 	}
 
 	return expr
+}
+
+func (p *Parser) parseArrayLiteral() ast.Expression {
+	array := &ast.ArrayLiteral{Token: p.currentToken}
+	array.Elements = p.parseExpressionList(token.RBRACKET)
+	return array
+}
+
+func (p *Parser) parseExpressionList(endChar token.TokenType) []ast.Expression {
+	list := []ast.Expression{}
+
+	if p.peekToken.Type == endChar {
+		p.nextToken()
+		return list
+	}
+
+	p.nextToken()
+	list = append(list, p.parseExpression(LOWEST))
+
+	for p.peekToken.Type == token.COMMA {
+		p.nextToken()
+		p.nextToken()
+		list = append(list, p.parseExpression(LOWEST))
+	}
+
+	if !p.expectPeek(endChar) {
+		return nil
+	}
+
+	return list
 }
 
 func (p *Parser) parseIfExpression() ast.Expression {
