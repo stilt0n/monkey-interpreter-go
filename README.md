@@ -46,7 +46,10 @@ I may not implement many features beyond what was in the book, but the ones I di
 ## Other stuff
 
 I've added a server package so that this repl can be run on a
-server. That way I can hopefully build a basic web text editor.
+server. Changes to this repo are automatically deployed on a free instance
+of [render](https://render.com/). I have also have code for a
+[simple code playground here](https://github.com/stilt0n/monkey-client) which
+is deployed to [github pages.](https://stilt0n.github.io/monkey-client/)
 
 ## Organization
 
