@@ -299,16 +299,18 @@ func evalWhileExpression(expr *ast.WhileExpression, env *object.Environment) obj
 		return condition
 	}
 	for isTruthy(condition) && iterCount < 1000 {
-		Eval(expr.Body, env)
+		evaluated := Eval(expr.Body, env)
+		if isError(evaluated) {
+			return evaluated
+		}
 		iterCount++
 		condition = Eval(expr.Condition, env)
 	}
 	if iterCount >= 1000 {
 		return newError("maximum iteration count exceeded")
 	}
-	// It would have arguably been more idiomatic to return the result of the final eval call
-	// here. In this case you could assign variables to the result of `while` (you can still do
-	// this but they will always end up NULL). I chose not to do this though.
+	// Returning the final `evaluated` would be possible here but returning NULL
+	// matches the behavior of most languages and is also done by `print`
 	return NULL
 }
 
